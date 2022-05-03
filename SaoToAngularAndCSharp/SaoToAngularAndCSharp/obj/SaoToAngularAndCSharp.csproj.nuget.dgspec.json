@@ -53,10 +53,6 @@
             "MongoDB.Driver": {
               "target": "Package",
               "version": "[2.15.0, )"
-            },
-            "MongoDB.Driver.Core": {
-              "target": "Package",
-              "version": "[2.15.0, )"
             }
           },
           "imports": [

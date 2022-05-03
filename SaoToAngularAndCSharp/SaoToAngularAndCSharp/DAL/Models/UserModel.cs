@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SaoToAngularAndCSharp.DAL.Models
 {
+    [BsonIgnoreExtraElements]
     public class UserModel
     {
         [BsonId]
@@ -15,6 +16,6 @@ namespace SaoToAngularAndCSharp.DAL.Models
         public string Username { get; set; }
         public string UserDisplay { get; set; }
         public string Password { get; set; }
-        public List<MessageConnectorModel> MessageHistoryies { get; set; }
+        public List<MessageConnectorModel>? MessageHistoryies { get; set; }
     }
 }

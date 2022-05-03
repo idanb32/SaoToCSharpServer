@@ -15,8 +15,8 @@ namespace SaoToAngularAndCSharp.DAL.Repostories
         {
             var client = new MongoClient(settings.ConnectionURL);
             var database = client.GetDatabase(settings.DatabaseName);
-            users = database.GetCollection<UserModel>(settings.CollectionName);
-            messageHistories = database.GetCollection<MessageHistoryModel>(settings.CollectionName2);
+            users = database.GetCollection<UserModel>(settings.CollectionName).WithWriteConcern(WriteConcern.WMajority);
+            messageHistories = database.GetCollection<MessageHistoryModel>(settings.CollectionName2).WithWriteConcern(WriteConcern.WMajority);
         }
 
         public async Task<List<UserModel>> getAllUsers()
@@ -26,21 +26,27 @@ namespace SaoToAngularAndCSharp.DAL.Repostories
         // maybe add user auth
         public async Task<string> MakeNewUser(string username, string password, string userDisplay)
         {
-            var newUser = new UserModel() { Username = username, Password = password, UserDisplay = userDisplay };
+            var newUser = new UserModel() { Username = username, Password = password, UserDisplay = userDisplay,MessageHistoryies=new List<MessageConnectorModel>() };
             await users.InsertOneAsync(newUser);
+            Console.WriteLine(newUser);
             return newUser.Id;
         }
 
         // maybe add user auth
 
         public async Task<UserModel> GetUserByLogin(string username, string password)
+
         {
-            return await users.Find<UserModel>(user => (user.Password == password && user.Username == username)).FirstOrDefaultAsync();
+            var filter = Builders<UserModel>.Filter.And(Builders<UserModel>.Filter.Eq(user => user.Username, username),
+                Builders<UserModel>.Filter.Eq(user2 => user2.Password, password));
+            var foundUser = await users.Find<UserModel>(filter).FirstOrDefaultAsync();
+            return foundUser;
         }
         public async Task SendMessage(string sendById, string sentToId, string message)
         {
             MessageModel newMessage = new MessageModel(message, sendById);
-            var messageHistory = await messageHistories.Find<MessageHistoryModel>(history => (history.SentBy == sendById && history.SentTo == sentToId)).FirstOrDefaultAsync();
+
+            var messageHistory = await GetHistory(sendById, sentToId);
             if (messageHistory == null)
             {
                 await CreateMessageHistory(sendById, sentToId, newMessage);

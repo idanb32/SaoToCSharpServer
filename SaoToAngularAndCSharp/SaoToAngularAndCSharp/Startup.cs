@@ -24,12 +24,11 @@ namespace SaoToAngularAndCSharp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
-            string allowedUrls = Configuration.GetConnectionString("AllowedUrl");
-            var mongoDbSection = Configuration.GetSection("MongoDb");
-            services.Configure<MongoDbSettings>(mongoDbSection);
+            string allowedUrls = Configuration["AllowedUrl"];
+            services.Configure<MongoDbSettings>(Configuration.GetSection(nameof(MongoDbSettings)));
             services.AddSingleton<IMongoDbSettings>(provider =>
-            provider.GetRequiredService<IOptions<MongoDbSettings>>().Value);
-            services.AddScoped<IRepostory ,Repostory>();
+                provider.GetRequiredService<IOptions<MongoDbSettings>>().Value);
+            services.AddScoped<IRepostory, Repostory>();
 
             services.AddCors(option =>
                 option.AddDefaultPolicy(builder =>
@@ -39,6 +38,7 @@ namespace SaoToAngularAndCSharp
                     .AllowAnyMethod()
                     .AllowCredentials();
                 }));
+            services.AddControllers();
 
         }
 
@@ -54,14 +54,11 @@ namespace SaoToAngularAndCSharp
             }
             app.UseRouting();
             app.UseCors();
-
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-                });
+                endpoints.MapControllerRoute("Default", "/api/{controller=Crud}");
             });
+            
         }
     }
 }
